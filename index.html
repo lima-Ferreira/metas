@@ -130,10 +130,14 @@
             width: 180px;
             height: 180px;
             margin: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         svg {
             transform: rotate(-90deg);
+            overflow: visible;
         }
 
         circle {
@@ -154,11 +158,14 @@
 
         .center-content {
             position: absolute;
+            width: 100%;
+            height: 100%;
             inset: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            text-align: center;
         }
 
         .percent {
@@ -194,6 +201,7 @@
             margin-top: 10px;
             font-size: .85rem;
             font-weight: bold;
+            min-height: 20px;
         }
 
         .verde {
@@ -249,15 +257,33 @@
                 grid-template-columns: 1fr;
             }
 
+            .chart-wrapper {
+                width: 170px;
+                height: 170px;
+            }
+
+            .percent {
+                font-size: 2rem;
+            }
+
             .resumo {
                 grid-template-columns: 1fr 1fr;
             }
+
         }
 
         @media(max-width: 600px) {
 
-            .resumo {
-                grid-template-columns: 1fr;
+            body {
+                padding: 10px;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            .chart-card {
+                padding: 18px 12px;
             }
 
             .chart-wrapper {
@@ -265,9 +291,36 @@
                 height: 150px;
             }
 
-            .percent {
-                font-size: 2rem;
+            .chart-wrapper svg {
+                width: 150px;
+                height: 150px;
             }
+
+            .center-content {
+                transform: translateY(-2px);
+            }
+
+            .percent {
+                font-size: 1.9rem;
+            }
+
+            .status {
+                font-size: .65rem;
+            }
+
+            .value b {
+                font-size: 1.05rem;
+            }
+
+            .extra {
+                font-size: .78rem;
+                line-height: 1.3;
+            }
+
+            .resumo {
+                grid-template-columns: 1fr;
+            }
+
         }
     </style>
 </head>
@@ -477,13 +530,7 @@
                 <!-- RESUMO -->
                 <div class="resumo">
 
-                    <div class="resumo-item">
-                        <small>META DIÁRIA</small>
-                        <b id="meta-dia">
-                            R$ 0,00
-                        </b>
-                    </div>
-
+                    <!-- 1 -->
                     <div class="resumo-item">
                         <small>META MENSAL</small>
                         <b id="meta-mes">
@@ -491,6 +538,15 @@
                         </b>
                     </div>
 
+                    <!-- 2 -->
+                    <div class="resumo-item">
+                        <small>META DIÁRIA</small>
+                        <b id="meta-dia">
+                            R$ 0,00
+                        </b>
+                    </div>
+
+                    <!-- 3 -->
                     <div class="resumo-item">
                         <small>ACUMULADO</small>
                         <b id="acumulado-total">
@@ -498,6 +554,7 @@
                         </b>
                     </div>
 
+                    <!-- 4 -->
                     <div class="resumo-item">
                         <small>FALTA NO MÊS</small>
                         <b id="faltante-mes">
@@ -684,7 +741,6 @@
             const faltanteMes =
                 metaMensal - acumuladoTotal;
 
-            // META DIÁRIA
             const diasEquivalentes = 11;
 
             const metaHoje =
@@ -692,7 +748,6 @@
                     ? faltanteMes / diasEquivalentes
                     : 0;
 
-            // PORCENTAGEM DIA
             let percentualDia = 0;
 
             if (metaHoje > 0) {
@@ -701,7 +756,6 @@
                     (vendaHoje / metaHoje) * 100;
             }
 
-            // PORCENTAGEM MÊS
             let percentualMes = 0;
 
             if (metaMensal > 0) {
@@ -722,7 +776,6 @@
                 faltanteMes
             );
 
-            // RESUMO
             document.getElementById('meta-dia').innerText =
                 formatarMoeda(metaHoje);
 
@@ -834,13 +887,7 @@
             const percentualVisual =
                 percentual > 100 ? 100 : percentual;
 
-            const percent =
-                document.getElementById('percent-mes');
-
-            const circle =
-                document.getElementById('circle-mes');
-
-            percent.innerText =
+            document.getElementById('percent-mes').innerText =
                 `${percentual.toFixed(0)}%`;
 
             document.getElementById('valor-mes').innerText =
@@ -859,7 +906,7 @@
 
             const raio = 251.2;
 
-            circle.style.strokeDashoffset =
+            document.getElementById('circle-mes').style.strokeDashoffset =
                 raio - (
                     (percentualVisual / 100) * raio
                 );
