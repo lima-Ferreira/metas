@@ -584,28 +584,29 @@
             carregarLojaSelecionada();
         };
 
-        function configurarSelect() {
+function configurarSelect() {
+    const select = document.getElementById('loja');
+    select.innerHTML = '';
 
-            const select =
-                document.getElementById('loja');
+    // 1. Cria a opção de Meta Geral como a primeira do select
+    const optionGeral = document.createElement('option');
+    optionGeral.value = 'Geral';
+    optionGeral.textContent = 'Meta Geral';
+    optionGeral.selected = true; // Define como padrão visual
+    select.appendChild(optionGeral);
 
-            select.innerHTML = '';
+    // 2. Cria as opções das lojas de 01 a 09 (pulando a 04)
+    for (let i = 1; i <= 9; i++) {
+        if (i === 4) continue; 
 
-            for (let i = 1; i <= 9; i++) {
+        const nome = `Loja ${String(i).padStart(2, '0')}`;
+        const option = document.createElement('option');
+        option.value = nome;
+        option.textContent = nome;
+        select.appendChild(option);
+    }
+}
 
-                const nome =
-                    `Loja ${String(i).padStart(2, '0')}`;
-
-                const option =
-                    document.createElement('option');
-
-                option.value = nome;
-
-                option.textContent = nome;
-
-                select.appendChild(option);
-            }
-        }
 
         function aplicarMascaraMoeda(input) {
 
