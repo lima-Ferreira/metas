@@ -588,16 +588,16 @@ function configurarSelect() {
     const select = document.getElementById('loja');
     select.innerHTML = '';
 
-    // 1. Cria a opção de Meta Geral como a primeira do select
+    // 1. Cria a opção de Meta Geral como a primeira do select (padrão)
     const optionGeral = document.createElement('option');
     optionGeral.value = 'Geral';
     optionGeral.textContent = 'Meta Geral';
-    optionGeral.selected = true; // Define como padrão visual
+    optionGeral.selected = true; 
     select.appendChild(optionGeral);
 
-    // 2. Cria as opções das lojas de 01 a 09 (pulando a 04)
+    // 2. Cria as opções das lojas de 01 a 09 (pulando a 04 e a 07)
     for (let i = 1; i <= 9; i++) {
-        if (i === 4) continue; 
+        if (i === 4 || i === 7) continue; // Pula o depósito (04) e a inexistente (07)
 
         const nome = `Loja ${String(i).padStart(2, '0')}`;
         const option = document.createElement('option');
@@ -605,6 +605,12 @@ function configurarSelect() {
         option.textContent = nome;
         select.appendChild(option);
     }
+
+    // 3. Adiciona a Loja 13 no final da lista
+    const option13 = document.createElement('option');
+    option13.value = 'Loja 13';
+    option13.textContent = 'Loja 13';
+    select.appendChild(option13);
 }
 
 
