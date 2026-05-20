@@ -748,12 +748,56 @@ function configurarSelect() {
             const faltanteMes =
                 metaMensal - acumuladoTotal;
 
-            const diasEquivalentes = 11;
+        function calcularDiasUteisRestantes() {
 
-            const metaHoje =
-                faltanteMes > 0
-                    ? faltanteMes / diasEquivalentes
-                    : 0;
+    const hoje = new Date();
+
+    const ano = hoje.getFullYear();
+
+    const mes = hoje.getMonth();
+
+    const diaAtual = hoje.getDate();
+
+    const ultimoDia =
+        new Date(ano, mes + 1, 0).getDate();
+
+    let diasUteis = 0;
+
+    // começa do próximo dia
+    for (
+        let dia = diaAtual + 1;
+        dia <= ultimoDia;
+        dia++
+    ) {
+
+        const data =
+            new Date(ano, mes, dia);
+
+        const diaSemana =
+            data.getDay();
+
+        // ignora domingos
+        if (diaSemana !== 0) {
+
+            diasUteis++;
+        }
+    }
+
+    // evita divisão por zero
+    if (diasUteis <= 0) {
+
+        diasUteis = 1;
+    }
+
+    return diasUteis;
+}
+const diasUteisRestantes =
+    calcularDiasUteisRestantes();
+
+const metaHoje =
+    faltanteMes > 0
+        ? faltanteMes / diasUteisRestantes
+        : 0;
 
             let percentualDia = 0;
 
