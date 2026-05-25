@@ -764,32 +764,32 @@ function configurarSelect() {
     let diasUteis = 0;
 
     // começa do próximo dia
-    for (
-        let dia = diaAtual + 1;
-        dia <= ultimoDia;
-        dia++
-    ) {
+for (
+    let dia = diaAtual;
+    dia <= ultimoDia;
+    dia++
+) {
 
-        const data =
-            new Date(ano, mes, dia);
+    const data =
+        new Date(ano, mes, dia);
 
-        const diaSemana =
-            data.getDay();
+    const diaSemana =
+        data.getDay();
 
-        // ignora domingos
-        if (diaSemana !== 0) {
+    // ignora domingos
+    if (diaSemana !== 0) {
 
-            diasUteis++;
-        }
+        diasUteis++;
     }
+}
 
-    // evita divisão por zero
-    if (diasUteis <= 0) {
+// evita divisão por zero
+if (diasUteis <= 0) {
 
-        diasUteis = 1;
-    }
+    diasUteis = 1;
+}
 
-    return diasUteis;
+return diasUteis;
 }
 const diasUteisRestantes =
     calcularDiasUteisRestantes();
