@@ -572,428 +572,314 @@
 
     <script>
 
-        const DB_KEY = 'emerald_duplo_v1';
+      const DB_KEY = "emerald_duplo_v1";
 
-        let dadosLojas =
-            JSON.parse(localStorage.getItem(DB_KEY)) || {};
+let dadosLojas = JSON.parse(localStorage.getItem(DB_KEY)) || {};
 
-        window.onload = () => {
+window.onload = () => {
+  configurarSelect();
 
-            configurarSelect();
-
-            carregarLojaSelecionada();
-        };
+  carregarLojaSelecionada();
+};
 
 function configurarSelect() {
-    const select = document.getElementById('loja');
-    select.innerHTML = '';
+  const select = document.getElementById("loja");
+  select.innerHTML = "";
 
-    // 1. Cria a opção de Meta Geral como a primeira do select (padrão)
-    const optionGeral = document.createElement('option');
-    optionGeral.value = 'Geral';
-    optionGeral.textContent = 'Meta Geral';
-    optionGeral.selected = true; 
-    select.appendChild(optionGeral);
+  // 1. Cria a opção de Meta Geral como a primeira do select (padrão)
+  const optionGeral = document.createElement("option");
+  optionGeral.value = "Geral";
+  optionGeral.textContent = "Meta Geral";
+  optionGeral.selected = true;
+  select.appendChild(optionGeral);
 
-    // 2. Cria as opções das lojas de 01 a 09 (pulando a 04 e a 07)
-    for (let i = 1; i <= 9; i++) {
-        if (i === 4 || i === 7) continue; // Pula o depósito (04) e a inexistente (07)
+  // 2. Cria as opções das lojas de 01 a 09 (pulando a 04 e a 07)
+  for (let i = 1; i <= 9; i++) {
+    if (i === 4 || i === 7) continue; // Pula o depósito (04) e a inexistente (07)
 
-        const nome = `Loja ${String(i).padStart(2, '0')}`;
-        const option = document.createElement('option');
-        option.value = nome;
-        option.textContent = nome;
-        select.appendChild(option);
+    const nome = `Loja ${String(i).padStart(2, "0")}`;
+    const option = document.createElement("option");
+    option.value = nome;
+    option.textContent = nome;
+    select.appendChild(option);
+  }
+
+  // 3. Adiciona a Loja 13 no final da lista
+  const option13 = document.createElement("option");
+  option13.value = "Loja 13";
+  option13.textContent = "Loja 13";
+  select.appendChild(option13);
+}
+
+function aplicarMascaraMoeda(input) {
+  let valor = input.value.replace(/\D/g, "");
+
+  valor = (valor / 100).toFixed(2) + "";
+
+  valor = valor.replace(".", ",");
+
+  valor = valor.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+  input.value = valor;
+}
+
+function moedaParaNumero(valor) {
+  return parseFloat(valor.replace(/\./g, "").replace(",", ".")) || 0;
+}
+
+function formatarMoeda(valor) {
+  return valor.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
+function formatarInput(valor) {
+  return valor.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+function carregarLojaSelecionada() {
+  const lojaAtual = document.getElementById("loja").value;
+
+  document.getElementById("header-loja").innerText = lojaAtual.toUpperCase();
+
+  if (dadosLojas[lojaAtual]) {
+    const dados = dadosLojas[lojaAtual];
+
+    document.getElementById("meta_mensal").value = formatarInput(
+      dados.meta_mensal,
+    );
+
+    document.getElementById("venda_acumulada").value = formatarInput(
+      dados.venda_acumulada,
+    );
+
+    document.getElementById("venda_hoje").value = formatarInput(
+      dados.venda_hoje,
+    );
+
+    renderizarDashboard(dados);
+  } else {
+    document.getElementById("meta_mensal").value = "";
+    document.getElementById("venda_acumulada").value = "";
+    document.getElementById("venda_hoje").value = "";
+
+    zerarDashboard();
+  }
+}
+
+function salvarDados(event) {
+  event.preventDefault();
+
+  const lojaAtual = document.getElementById("loja").value;
+
+  const registro = {
+    meta_mensal: moedaParaNumero(document.getElementById("meta_mensal").value),
+
+    venda_acumulada: moedaParaNumero(
+      document.getElementById("venda_acumulada").value,
+    ),
+
+    venda_hoje: moedaParaNumero(document.getElementById("venda_hoje").value),
+  };
+
+  dadosLojas[lojaAtual] = registro;
+
+  localStorage.setItem(DB_KEY, JSON.stringify(dadosLojas));
+
+  renderizarDashboard(registro);
+}
+
+function renderizarDashboard(dados) {
+  const metaMensal = dados.meta_mensal;
+
+  const acumuladoAnterior = dados.venda_acumulada;
+
+  const vendaHoje = dados.venda_hoje;
+
+  const acumuladoTotal = acumuladoAnterior + vendaHoje;
+
+  const faltanteMes = metaMensal - acumuladoTotal;
+
+  function calcularDiasUteisRestantes() {
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = hoje.getMonth();
+    const diaAtual = hoje.getDate();
+    const ultimoDia = new Date(ano, mes + 1, 0).getDate();
+
+    let diasUteis = 0;
+
+    // Começa estritamente a partir de AMANHÃ (diaAtual + 1)
+    // Já que a venda de "hoje" já está sendo computada separadamente no formulário
+    for (let dia = diaAtual + 1; dia <= ultimoDia; dia++) {
+      const data = new Date(ano, mes, dia);
+      const diaSemana = data.getDay();
+
+      // Ignora domingos (0) e conta apenas segunda(1) a sábado(6)
+      if (diaSemana !== 0) {
+        diasUteis++;
+      }
     }
 
-    // 3. Adiciona a Loja 13 no final da lista
-    const option13 = document.createElement('option');
-    option13.value = 'Loja 13';
-    option13.textContent = 'Loja 13';
-    select.appendChild(option13);
+    // Evita divisão por zero se for o último dia útil ou fim do mês
+    if (diasUteis <= 0) {
+      diasUteis = 1;
+    }
+
+    return diasUteis;
+  }
+
+  const diasUteisRestantes = calcularDiasUteisRestantes();
+
+  const metaHoje = faltanteMes > 0 ? faltanteMes / diasUteisRestantes : 0;
+
+  let percentualDia = 0;
+
+  if (metaHoje > 0) {
+    percentualDia = (vendaHoje / metaHoje) * 100;
+  }
+
+  let percentualMes = 0;
+
+  if (metaMensal > 0) {
+    percentualMes = (acumuladoTotal / metaMensal) * 100;
+  }
+
+  atualizarGraficoDia(percentualDia, vendaHoje, metaHoje);
+
+  atualizarGraficoMes(percentualMes, acumuladoTotal, faltanteMes);
+
+  document.getElementById("meta-dia").innerText = formatarMoeda(metaHoje);
+
+  document.getElementById("meta-mes").innerText = formatarMoeda(metaMensal);
+
+  document.getElementById("acumulado-total").innerText =
+    formatarMoeda(acumuladoTotal);
+
+  document.getElementById("faltante-mes").innerText = formatarMoeda(
+    faltanteMes > 0 ? faltanteMes : 0,
+  );
 }
 
+function atualizarGraficoDia(percentual, vendido, meta) {
+  const percentualVisual = percentual > 100 ? 100 : percentual;
 
-        function aplicarMascaraMoeda(input) {
+  const percent = document.getElementById("percent-dia");
 
-            let valor =
-                input.value.replace(/\D/g, '');
+  const circle = document.getElementById("circle-dia");
 
-            valor =
-                (valor / 100).toFixed(2) + '';
+  const status = document.getElementById("status-dia");
 
-            valor =
-                valor.replace('.', ',');
+  const extra = document.getElementById("extra-dia");
 
-            valor =
-                valor.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  let classe = "vermelho";
 
-            input.value = valor;
-        }
+  if (percentual >= 70) {
+    classe = "laranja";
+  }
 
-        function moedaParaNumero(valor) {
+  if (percentual >= 100) {
+    classe = "verde";
+  }
 
-            return parseFloat(
-                valor
-                    .replace(/\./g, '')
-                    .replace(',', '.')
-            ) || 0;
-        }
+  percent.innerText = `${percentual.toFixed(0)}%`;
 
-        function formatarMoeda(valor) {
+  percent.className = `percent ${classe}`;
 
-            return valor.toLocaleString(
-                'pt-BR',
-                {
-                    style: 'currency',
-                    currency: 'BRL'
-                }
-            );
-        }
+  document.getElementById("valor-dia").innerText = formatarMoeda(vendido);
 
-        function formatarInput(valor) {
+  if (percentual >= 100) {
+    status.innerText = "ATINGIDO 🎯";
 
-            return valor.toLocaleString(
-                'pt-BR',
-                {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                }
-            );
-        }
+    const excedente = vendido - meta;
 
-        function carregarLojaSelecionada() {
-
-            const lojaAtual =
-                document.getElementById('loja').value;
-
-            document.getElementById('header-loja').innerText =
-                lojaAtual.toUpperCase();
-
-            if (dadosLojas[lojaAtual]) {
-
-                const dados =
-                    dadosLojas[lojaAtual];
-
-                document.getElementById('meta_mensal').value =
-                    formatarInput(dados.meta_mensal);
-
-                document.getElementById('venda_acumulada').value =
-                    formatarInput(dados.venda_acumulada);
-
-                document.getElementById('venda_hoje').value =
-                    formatarInput(dados.venda_hoje);
-
-                renderizarDashboard(dados);
-
-            } else {
-
-                document.getElementById('meta_mensal').value = '';
-                document.getElementById('venda_acumulada').value = '';
-                document.getElementById('venda_hoje').value = '';
-
-                zerarDashboard();
-            }
-        }
-
-        function salvarDados(event) {
-
-            event.preventDefault();
-
-            const lojaAtual =
-                document.getElementById('loja').value;
-
-            const registro = {
-
-                meta_mensal:
-                    moedaParaNumero(
-                        document.getElementById('meta_mensal').value
-                    ),
-
-                venda_acumulada:
-                    moedaParaNumero(
-                        document.getElementById('venda_acumulada').value
-                    ),
-
-                venda_hoje:
-                    moedaParaNumero(
-                        document.getElementById('venda_hoje').value
-                    )
-            };
-
-            dadosLojas[lojaAtual] = registro;
-
-            localStorage.setItem(
-                DB_KEY,
-                JSON.stringify(dadosLojas)
-            );
-
-            renderizarDashboard(registro);
-        }
-
-        function renderizarDashboard(dados) {
-
-            const metaMensal =
-                dados.meta_mensal;
-
-            const acumuladoAnterior =
-                dados.venda_acumulada;
-
-            const vendaHoje =
-                dados.venda_hoje;
-
-            const acumuladoTotal =
-                acumuladoAnterior + vendaHoje;
-
-            const faltanteMes =
-                metaMensal - acumuladoTotal;
-
-                function calcularDiasUteisRestantes() {
-            const hoje = new Date();
-            const ano = hoje.getFullYear();
-            const mes = hoje.getMonth();
-            const diaAtual = hoje.getDate();
-            const ultimoDia = new Date(ano, mes + 1, 0).getDate();
-
-            let diasUteis = 0;
-
-            // Começa estritamente a partir de AMANHÃ (diaAtual + 1)
-            // Já que a venda de "hoje" já está sendo computada separadamente no formulário
-            for (let dia = diaAtual + 1; dia <= ultimoDia; dia++) {
-                const data = new Date(ano, mes, dia);
-                const diaSemana = data.getDay();
-
-                // Ignora domingos (0) e conta apenas segunda(1) a sábado(6)
-                if (diaSemana !== 0) {
-                    diasUteis++;
-                }
-            }
-
-            // Evita divisão por zero se for o último dia útil ou fim do mês
-            if (diasUteis <= 0) {
-                diasUteis = 1;
-            }
-
-            return diasUteis;
-        }
-
-}
-const diasUteisRestantes =
-    calcularDiasUteisRestantes();
-
-const metaHoje =
-    faltanteMes > 0
-        ? faltanteMes / diasUteisRestantes
-        : 0;
-
-            let percentualDia = 0;
-
-            if (metaHoje > 0) {
-
-                percentualDia =
-                    (vendaHoje / metaHoje) * 100;
-            }
-
-            let percentualMes = 0;
-
-            if (metaMensal > 0) {
-
-                percentualMes =
-                    (acumuladoTotal / metaMensal) * 100;
-            }
-
-            atualizarGraficoDia(
-                percentualDia,
-                vendaHoje,
-                metaHoje
-            );
-
-            atualizarGraficoMes(
-                percentualMes,
-                acumuladoTotal,
-                faltanteMes
-            );
-
-            document.getElementById('meta-dia').innerText =
-                formatarMoeda(metaHoje);
-
-            document.getElementById('meta-mes').innerText =
-                formatarMoeda(metaMensal);
-
-            document.getElementById('acumulado-total').innerText =
-                formatarMoeda(acumuladoTotal);
-
-            document.getElementById('faltante-mes').innerText =
-                formatarMoeda(
-                    faltanteMes > 0
-                        ? faltanteMes
-                        : 0
-                );
-        }
-
-        function atualizarGraficoDia(percentual, vendido, meta) {
-
-            const percentualVisual =
-                percentual > 100 ? 100 : percentual;
-
-            const percent =
-                document.getElementById('percent-dia');
-
-            const circle =
-                document.getElementById('circle-dia');
-
-            const status =
-                document.getElementById('status-dia');
-
-            const extra =
-                document.getElementById('extra-dia');
-
-            let classe = 'vermelho';
-
-            if (percentual >= 70) {
-                classe = 'laranja';
-            }
-
-            if (percentual >= 100) {
-                classe = 'verde';
-            }
-
-            percent.innerText =
-                `${percentual.toFixed(0)}%`;
-
-            percent.className =
-                `percent ${classe}`;
-
-            document.getElementById('valor-dia').innerText =
-                formatarMoeda(vendido);
-
-            if (percentual >= 100) {
-
-                status.innerText =
-                    'ATINGIDO 🎯';
-
-                const excedente =
-                    vendido - meta;
-
-                extra.innerHTML =
-                    `<span class="verde">
+    extra.innerHTML = `<span class="verde">
                         + ${formatarMoeda(excedente)}
                         acima da meta
                     </span>`;
+  } else {
+    status.innerText = "META DO DIA";
 
-            } else {
+    const faltante = meta - vendido;
 
-                status.innerText =
-                    'META DO DIA';
-
-                const faltante =
-                    meta - vendido;
-
-                extra.innerHTML =
-                    `<span class="laranja">
+    extra.innerHTML = `<span class="laranja">
                         Faltam
                         ${formatarMoeda(faltante)}
                     </span>`;
-            }
+  }
 
-            const raio = 251.2;
+  const raio = 251.2;
 
-            circle.style.strokeDashoffset =
-                raio - (
-                    (percentualVisual / 100) * raio
-                );
+  circle.style.strokeDashoffset = raio - (percentualVisual / 100) * raio;
 
-            if (percentual >= 100) {
+  if (percentual >= 100) {
+    circle.style.stroke = "var(--accent)";
+  } else if (percentual >= 70) {
+    circle.style.stroke = "var(--warning)";
+  } else {
+    circle.style.stroke = "var(--danger)";
+  }
+}
 
-                circle.style.stroke =
-                    'var(--accent)';
+function atualizarGraficoMes(percentual, acumulado, faltante) {
+  const percentualVisual = percentual > 100 ? 100 : percentual;
 
-            } else if (percentual >= 70) {
+  document.getElementById("percent-mes").innerText =
+    `${percentual.toFixed(0)}%`;
 
-                circle.style.stroke =
-                    'var(--warning)';
+  document.getElementById("valor-mes").innerText = formatarMoeda(acumulado);
 
-            } else {
+  if (faltante > 0) {
+    document.getElementById("extra-mes").innerText =
+      `Faltam ${formatarMoeda(faltante)}`;
+  } else {
+    document.getElementById("extra-mes").innerText = "Meta mensal atingida 🎯";
+  }
 
-                circle.style.stroke =
-                    'var(--danger)';
-            }
-        }
+  const raio = 251.2;
 
-        function atualizarGraficoMes(percentual, acumulado, faltante) {
+  document.getElementById("circle-mes").style.strokeDashoffset =
+    raio - (percentualVisual / 100) * raio;
+}
 
-            const percentualVisual =
-                percentual > 100 ? 100 : percentual;
+function zerarDashboard() {
+  document.getElementById("percent-dia").innerText = "0%";
+  document.getElementById("percent-mes").innerText = "0%";
 
-            document.getElementById('percent-mes').innerText =
-                `${percentual.toFixed(0)}%`;
+  document.getElementById("valor-dia").innerText = "R$ 0,00";
 
-            document.getElementById('valor-mes').innerText =
-                formatarMoeda(acumulado);
+  document.getElementById("valor-mes").innerText = "R$ 0,00";
 
-            if (faltante > 0) {
+  document.getElementById("extra-dia").innerHTML = "";
+  document.getElementById("extra-mes").innerHTML = "";
 
-                document.getElementById('extra-mes').innerText =
-                    `Faltam ${formatarMoeda(faltante)}`;
+  document.getElementById("meta-dia").innerText = "R$ 0,00";
 
-            } else {
+  document.getElementById("meta-mes").innerText = "R$ 0,00";
 
-                document.getElementById('extra-mes').innerText =
-                    'Meta mensal atingida 🎯';
-            }
+  document.getElementById("acumulado-total").innerText = "R$ 0,00";
 
-            const raio = 251.2;
+  document.getElementById("faltante-mes").innerText = "R$ 0,00";
 
-            document.getElementById('circle-mes').style.strokeDashoffset =
-                raio - (
-                    (percentualVisual / 100) * raio
-                );
-        }
+  document.getElementById("circle-dia").style.strokeDashoffset = 251.2;
 
-        function zerarDashboard() {
+  document.getElementById("circle-mes").style.strokeDashoffset = 251.2;
+}
 
-            document.getElementById('percent-dia').innerText = '0%';
-            document.getElementById('percent-mes').innerText = '0%';
+function resetarSistema() {
+  if (confirm("Deseja apagar todos os dados?")) {
+    localStorage.removeItem(DB_KEY);
 
-            document.getElementById('valor-dia').innerText =
-                'R$ 0,00';
+    dadosLojas = {};
 
-            document.getElementById('valor-mes').innerText =
-                'R$ 0,00';
+    carregarLojaSelecionada();
+  }
+}
 
-            document.getElementById('extra-dia').innerHTML = '';
-            document.getElementById('extra-mes').innerHTML = '';
-
-            document.getElementById('meta-dia').innerText =
-                'R$ 0,00';
-
-            document.getElementById('meta-mes').innerText =
-                'R$ 0,00';
-
-            document.getElementById('acumulado-total').innerText =
-                'R$ 0,00';
-
-            document.getElementById('faltante-mes').innerText =
-                'R$ 0,00';
-
-            document.getElementById('circle-dia').style.strokeDashoffset =
-                251.2;
-
-            document.getElementById('circle-mes').style.strokeDashoffset =
-                251.2;
-        }
-
-        function resetarSistema() {
-
-            if (confirm('Deseja apagar todos os dados?')) {
-
-                localStorage.removeItem(DB_KEY);
-
-                dadosLojas = {};
-
-                carregarLojaSelecionada();
-            }
-        }
 
     </script>
 
