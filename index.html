@@ -748,48 +748,35 @@ function configurarSelect() {
             const faltanteMes =
                 metaMensal - acumuladoTotal;
 
-        function calcularDiasUteisRestantes() {
+                function calcularDiasUteisRestantes() {
+            const hoje = new Date();
+            const ano = hoje.getFullYear();
+            const mes = hoje.getMonth();
+            const diaAtual = hoje.getDate();
+            const ultimoDia = new Date(ano, mes + 1, 0).getDate();
 
-    const hoje = new Date();
+            let diasUteis = 0;
 
-    const ano = hoje.getFullYear();
+            // Começa estritamente a partir de AMANHÃ (diaAtual + 1)
+            // Já que a venda de "hoje" já está sendo computada separadamente no formulário
+            for (let dia = diaAtual + 1; dia <= ultimoDia; dia++) {
+                const data = new Date(ano, mes, dia);
+                const diaSemana = data.getDay();
 
-    const mes = hoje.getMonth();
+                // Ignora domingos (0) e conta apenas segunda(1) a sábado(6)
+                if (diaSemana !== 0) {
+                    diasUteis++;
+                }
+            }
 
-    const diaAtual = hoje.getDate();
+            // Evita divisão por zero se for o último dia útil ou fim do mês
+            if (diasUteis <= 0) {
+                diasUteis = 1;
+            }
 
-    const ultimoDia =
-        new Date(ano, mes + 1, 0).getDate();
+            return diasUteis;
+        }
 
-    let diasUteis = 0;
-
-    // começa do próximo dia
-for (
-    let dia = diaAtual;
-    dia <= ultimoDia;
-    dia++
-) {
-
-    const data =
-        new Date(ano, mes, dia);
-
-    const diaSemana =
-        data.getDay();
-
-    // ignora domingos
-    if (diaSemana !== 0) {
-
-        diasUteis++;
-    }
-}
-
-// evita divisão por zero
-if (diasUteis <= 0) {
-
-    diasUteis = 1;
-}
-
-return diasUteis;
 }
 const diasUteisRestantes =
     calcularDiasUteisRestantes();
